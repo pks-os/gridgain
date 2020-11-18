@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -193,6 +194,8 @@ import static org.apache.ignite.internal.processors.tracing.SpanType.EXCHANGE_FU
  * Partition exchange manager.
  */
 public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedManagerAdapter<K, V> {
+    public static final String FAILED_DUMP_MSG = "Failed to dump debug information: ";
+
     /** Exchange history size. */
     private final int EXCHANGE_HISTORY_SIZE =
         IgniteSystemProperties.getInteger(IgniteSystemProperties.IGNITE_EXCHANGE_HISTORY_SIZE, 1_000);
@@ -310,6 +313,9 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
 
     /** */
     private final ReentrantLock dumpLongRunningOpsLock = new ReentrantLock();
+
+    /** */
+    private final CountDownLatch startedLatch = new CountDownLatch(1);
 
     /** Discovery listener. */
     private final DiscoveryEventListener discoLsnr = new DiscoveryEventListener() {
@@ -534,6 +540,8 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
         rebalanced = clusterReg.booleanMetric(REBALANCED,
             "True if the cluster has achieved fully rebalanced state. Note that an inactive cluster always has" +
             " this metric in False regardless of the real partitions state.");
+
+        startedLatch.countDown();
     }
 
     /**
@@ -2454,6 +2462,8 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
             if (!dumpLongRunningOpsLock.tryLock())
                 return;
 
+            startedLatch.await();
+
             try {
                 if (U.currentTimeMillis() < nextLongRunningOpsDumpTime)
                     return;
@@ -2486,7 +2496,7 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
             }
         }
         catch (Exception e) {
-            U.error(diagnosticLog, "Failed to dump debug information: " + e, e);
+            U.error(diagnosticLog, FAILED_DUMP_MSG + e, e);
         }
     }
 
@@ -3442,7 +3452,7 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
                                         dumpDebugInfo(exchFut);
                                     }
                                     catch (Exception e) {
-                                        U.error(diagnosticLog, "Failed to dump debug information: " + e, e);
+                                        U.error(diagnosticLog, FAILED_DUMP_MSG + e, e);
                                     }
 
                                     nextDumpTime = U.currentTimeMillis() + nextDumpTimeout(dumpCnt++, dumpTimeout);
