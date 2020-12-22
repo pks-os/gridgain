@@ -194,6 +194,7 @@ import static org.apache.ignite.internal.processors.tracing.SpanType.EXCHANGE_FU
  * Partition exchange manager.
  */
 public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedManagerAdapter<K, V> {
+    /** Prefix of error message for dumping long running operations. */
     public static final String FAILED_DUMP_MSG = "Failed to dump debug information: ";
 
     /** Exchange history size. */
@@ -314,8 +315,8 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
     /** */
     private final ReentrantLock dumpLongRunningOpsLock = new ReentrantLock();
 
-    /** */
-    private final CountDownLatch startedLatch = new CountDownLatch(1);
+    /** Latch that is used to guarantee that this manager fully started and all variables initialized. */
+    private final CountDownLatch startLatch = new CountDownLatch(1);
 
     /** Discovery listener. */
     private final DiscoveryEventListener discoLsnr = new DiscoveryEventListener() {
@@ -541,7 +542,7 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
             "True if the cluster has achieved fully rebalanced state. Note that an inactive cluster always has" +
             " this metric in False regardless of the real partitions state.");
 
-        startedLatch.countDown();
+        startLatch.countDown();
     }
 
     /**
@@ -2462,7 +2463,7 @@ public class GridCachePartitionExchangeManager<K, V> extends GridCacheSharedMana
             if (!dumpLongRunningOpsLock.tryLock())
                 return;
 
-            startedLatch.await();
+            startLatch.await();
 
             try {
                 if (U.currentTimeMillis() < nextLongRunningOpsDumpTime)
