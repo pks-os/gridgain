@@ -150,7 +150,7 @@ public class IgniteCacheDatabaseSharedManager extends GridCacheSharedManagerAdap
     protected final Map<String, DataRegionMetrics> memMetricsMap = new ConcurrentHashMap<>();
 
     /** */
-    private volatile boolean dataRegionsInitialized;
+    protected volatile boolean dataRegionsInitialized;
 
     /** */
     private volatile boolean dataRegionsStarted;
@@ -1105,13 +1105,6 @@ public class IgniteCacheDatabaseSharedManager extends GridCacheSharedManagerAdap
     }
 
     /**
-     * @return Future that will be completed when indexes for given cache are restored.
-     */
-    @Nullable public IgniteInternalFuture indexRebuildFuture(int cacheId) {
-        return null;
-    }
-
-    /**
      * Reserve update history for exchange.
      *
      * @return Reserved update counters per cache and partition.
@@ -1518,7 +1511,7 @@ public class IgniteCacheDatabaseSharedManager extends GridCacheSharedManagerAdap
      * @param memMetrics Memory metrics.
      * @return Wrapped memory provider.
      */
-    protected DirectMemoryProvider wrapMetricsMemoryProvider(
+    private DirectMemoryProvider wrapMetricsMemoryProvider(
         final DirectMemoryProvider memoryProvider0,
         final DataRegionMetricsImpl memMetrics
     ) {
