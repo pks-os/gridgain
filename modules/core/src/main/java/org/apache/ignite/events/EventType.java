@@ -24,6 +24,7 @@ import org.apache.ignite.compute.ComputeTaskSession;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgnitePredicate;
+import org.apache.ignite.spi.checkpoint.CheckpointSpi;
 import org.apache.ignite.spi.eventstorage.NoopEventStorageSpi;
 import org.apache.ignite.spi.eventstorage.memory.MemoryEventStorageSpi;
 
@@ -73,6 +74,7 @@ public interface EventType {
      * internal Ignite events and should not be used by user-defined events.
      *
      * @see CheckpointEvent
+     * @see CheckpointSpi
      * @see ComputeTaskSession#saveCheckpoint(String, Object)
      */
     public static final int EVT_CHECKPOINT_SAVED = 1;
@@ -87,6 +89,7 @@ public interface EventType {
      * internal Ignite events and should not be used by user-defined events.
      *
      * @see CheckpointEvent
+     * @see CheckpointSpi
      * @see ComputeTaskSession#loadCheckpoint(String)
      */
     public static final int EVT_CHECKPOINT_LOADED = 2;
@@ -106,6 +109,7 @@ public interface EventType {
      * internal Ignite events and should not be used by user-defined events.
      *
      * @see CheckpointEvent
+     * @see CheckpointSpi
      * @see ComputeTaskSession#removeCheckpoint(String)
      */
     public static final int EVT_CHECKPOINT_REMOVED = 3;
@@ -882,6 +886,7 @@ public interface EventType {
      * subscribe to all checkpoint events.
      *
      * @see CheckpointEvent
+     * @see CheckpointSpi
      */
     public static final int[] EVTS_CHECKPOINT = {
         EVT_CHECKPOINT_SAVED,
