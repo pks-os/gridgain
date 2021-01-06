@@ -205,7 +205,7 @@ public class IgniteDataStorageMetricsSelfTest extends GridCommonAbstractTest {
             DataStorageMetrics dsm;
             long prevLastStart = 0;
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 5; i++) {
                 ex.context().cache().context().database().waitForCheckpoint("test");
                 cache.put(i, "VALUE_" + i);
 
@@ -216,7 +216,7 @@ public class IgniteDataStorageMetricsSelfTest extends GridCommonAbstractTest {
                 assertTrue(lastStart - prevLastStart > 0);
 
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 }
                 catch (InterruptedException e) { }
 
