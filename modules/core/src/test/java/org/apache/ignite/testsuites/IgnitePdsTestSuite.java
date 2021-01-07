@@ -56,6 +56,7 @@ import org.apache.ignite.internal.processors.cache.persistence.wal.ExplicitWalDe
 import org.apache.ignite.internal.processors.cache.persistence.wal.SegmentedRingByteBufferTest;
 import org.apache.ignite.internal.processors.cache.persistence.wal.SysPropWalDeltaConsistencyTest;
 import org.apache.ignite.internal.processors.cache.persistence.wal.WalCorruptionTest;
+import org.apache.ignite.internal.processors.cache.persistence.wal.WalEnableDisableWithNodeShutdownTest;
 import org.apache.ignite.internal.processors.cache.persistence.wal.aware.SegmentAwareTest;
 import org.apache.ignite.internal.processors.configuration.distributed.DistributedConfigurationPersistentTest;
 import org.apache.ignite.internal.processors.database.IgniteDbDynamicCacheSelfTest;
@@ -128,6 +129,8 @@ public class IgnitePdsTestSuite {
         GridTestUtils.addTestIfNeeded(suite, SegmentAwareTest.class, ignoredTests);
 
         GridTestUtils.addTestIfNeeded(suite, WalCorruptionTest.class, ignoredTests);
+
+        GridTestUtils.addTestIfNeeded(suite, WalEnableDisableWithNodeShutdownTest.class, ignoredTests);
 
         return suite;
     }
