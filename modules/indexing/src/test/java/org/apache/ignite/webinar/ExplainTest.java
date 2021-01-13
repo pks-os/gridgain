@@ -16,17 +16,14 @@
 
 package org.apache.ignite.webinar;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.ignite.cache.query.FieldsQueryCursor;
-import org.apache.ignite.cache.query.QueryRetryException;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.failure.StopNodeFailureHandler;
 import org.apache.ignite.internal.IgniteEx;
 import org.apache.ignite.internal.processors.cache.index.AbstractIndexingCommonTest;
-import org.apache.ignite.testframework.GridTestUtils;
 import org.junit.Test;
 
 /**
@@ -34,7 +31,7 @@ import org.junit.Test;
  */
 public class ExplainTest extends AbstractIndexingCommonTest {
     /** Keys count. */
-    private static final int KEY_CNT = 10;
+    private static final int KEY_CNT = 100;
 
     /** {@inheritDoc} */
     @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
@@ -66,7 +63,27 @@ public class ExplainTest extends AbstractIndexingCommonTest {
         for (int i = 0; i < KEY_CNT; ++i)
            sql("INSERT INTO TEST (id, val0, val1) VALUES (?, ?, ?)", i, "val0_" + i, i);
 
-        System.out.println("+++ " + sql("EXPLAIN SELECT ID FROM TEST WHERE val1 < ? and val0 = ?", 1, "val").getAll());
+        System.out.println("+++ " + sql("EXPLAIN SELECT ID FROM TEST WHERE val0 = ? AND val1 < ?", 1, "val").getAll());
+    }
+
+    /** */
+    @Test
+    public void testExplainComplex() throws Exception {
+        awaitPartitionMapExchange(true, true, null);
+
+        sql("CREATE TABLE TEST0 (id INT PRIMARY KEY, grpId INT,  val0 VARCHAR, val1 INT)");
+        sql("CREATE TABLE TEST1 (id INT PRIMARY KEY, val0 VARCHAR, val1 INT)");
+        sql("CREATE INDEX idx0 on TEST0(val1)");
+        sql("CREATE INDEX idx1 on TEST0(val0)");
+
+        for (int i = 0; i < KEY_CNT; ++i)
+            sql("INSERT INTO TEST0 (id, grpId, val0, val1) VALUES (?, ?, ?, ?)", i, i / 10, "val0_" + i, i);
+
+        System.out.println("+++ " + sql("EXPLAIN " +
+            "SELECT * FROM " +
+                "(SELECT grpId, val0 FROM TEST0 WHERE val0 > ? GROUP BY grpId HAVING (AVG(val1)) < ?) AS AGG_RES " +
+                "JOIN TEST1 ON TEST1.id = AGG_RES.grpId",
+            1, 2).getAll());
     }
 
     /**
