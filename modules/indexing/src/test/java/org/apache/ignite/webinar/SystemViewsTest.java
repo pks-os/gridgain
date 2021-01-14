@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * Tests for local query execution in lazy mode.
  */
-public class ExplainTest extends AbstractIndexingCommonTest {
+public class SystemViewsTest extends AbstractIndexingCommonTest {
     /** Keys count. */
     private static final int KEY_CNT = 100;
 
@@ -54,39 +54,15 @@ public class ExplainTest extends AbstractIndexingCommonTest {
 
     /** */
     @Test
-    public void testExplainPlain() throws Exception {
-        awaitPartitionMapExchange(true, true, null);
-
-        sql("CREATE TABLE TEST (id INT PRIMARY KEY, val0 VARCHAR, val1 INT)");
-        sql("CREATE INDEX idx0 on TEST(val1)");
-
-        for (int i = 0; i < KEY_CNT; ++i)
-           sql("INSERT INTO TEST (id, val0, val1) VALUES (?, ?, ?)", i, "val0_" + i, i);
-
-        System.out.println("+++ " + sql("EXPLAIN SELECT ID FROM TEST WHERE val0 = ? AND val1 < ?", 1, "val").getAll());
-    }
-
-    /** */
-    @Test
-    public void testExplainComplex() throws Exception {
+    public void testAllViews() throws Exception {
         awaitPartitionMapExchange(true, true, null);
 
         sql("CREATE TABLE CITY (id INT PRIMARY KEY, countryId INT, name VARCHAR, population INT)");
         sql("CREATE TABLE COUNTRY (id INT PRIMARY KEY, name VARCHAR)");
         sql("CREATE INDEX CityCountryIdx on CITY(countryId)");
 
-//        for (int i = 0; i < KEY_CNT; ++i)
-//            sql("INSERT INTO TEST0 (id, grpId, val0, val1) VALUES (?, ?, ?, ?)", i, i / 10, "val0_" + i, i);
-
-        System.out.println("+++ " + sql("EXPLAIN " +
-            "SELECT COUNTRY.name, cities.pop FROM " +
-                "(SELECT countryId, SUM(population) as pop " +
-                "   FROM CITY " +
-                "   GROUP BY countryId " +
-                "   HAVING (AVG(population)) < ?" +
-                ") AS cities " +
-                "JOIN COUNTRY ON COUNTRY.id = cities.countryId",
-            1, 2).getAll());
+        System.out.println("+++");
+        sql("SELECT * FROM SYS.METRICS").getAll().forEach(System.out::println);
     }
 
     /**
