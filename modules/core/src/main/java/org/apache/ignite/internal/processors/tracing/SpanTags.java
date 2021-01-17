@@ -16,6 +16,8 @@
 
 package org.apache.ignite.internal.processors.tracing;
 
+import org.apache.ignite.spi.tracing.Scope;
+
 /**
  * List of tags that can be used to decorate spans.
  */
@@ -103,6 +105,9 @@ public class SpanTags {
 
     /** Number of cache entries to be updated as a result of DML query. */
     public static final String SQL_CACHE_UPDATES = "sql.cache.updates";
+
+    /** Query ID. */
+    public static final String SQL_QUERY_ID = "sql.query.id";
 
     /** */
     private SpanTags() {}

@@ -17,8 +17,6 @@
 package org.apache.ignite.internal.processors.monitoring.opencensus;
 
 import com.google.common.collect.ImmutableMap;
-import io.opencensus.exporter.trace.zipkin.ZipkinExporterConfiguration;
-import io.opencensus.exporter.trace.zipkin.ZipkinTraceExporter;
 import io.opencensus.trace.SpanId;
 import io.opencensus.trace.Status;
 import io.opencensus.trace.Tracing;
@@ -108,13 +106,6 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
 
     /** Key counter. */
     private final AtomicInteger keyCntr = new AtomicInteger();
-
-    /** */
-    @Override protected void beforeTestsStarted() throws Exception {
-        ZipkinTraceExporter.createAndRegister(
-            ZipkinExporterConfiguration.builder().setV2Url("http://localhost:9411/api/v2/spans")
-                .setServiceName("ignite-cluster").build());
-    }
 
     /** {@inheritDoc} */
     @Override protected TracingSpi<?> getTracingSpi() {
