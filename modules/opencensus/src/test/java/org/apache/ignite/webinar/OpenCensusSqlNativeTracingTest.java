@@ -98,9 +98,9 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
     public void test() throws Exception {
         for (int i = 0; i < 100; ++i) {
             System.out.println(sql("SELECT ID FROM TEST WHERE val1 = " + i).getAll().size());
-//            sql("UPDATE TEST SET val1 = ? WHERE id = ?", i, i);
+            sql("UPDATE TEST SET val1 = ? WHERE id = ?", i, i);
 
-            U.sleep(100);
+            U.sleep(10);
         }
 
         sql("SELECT ID FROM TEST WHERE val0 > ?", "val0_0").getAll();
