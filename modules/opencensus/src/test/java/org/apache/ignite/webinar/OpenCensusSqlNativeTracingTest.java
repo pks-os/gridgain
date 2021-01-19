@@ -98,7 +98,7 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
     public void test() throws Exception {
         for (int i = 0; i < 100; ++i) {
             System.out.println(sql("SELECT ID FROM TEST WHERE val1 = " + i).getAll().size());
-            sql("UPDATE TEST SET val1 = ? WHERE id = ?", i, i);
+//            sql("UPDATE TEST SET val1 = ? WHERE id = ?", i, i);
 
             U.sleep(100);
         }
@@ -114,8 +114,8 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
     /** */
     protected FieldsQueryCursor<List<?>> sql( String sql, Object... args) {
         SqlFieldsQuery qry = new SqlFieldsQuery(sql)
-            .setArgs(args)
-            .setLazy(true);
+            .setLazy(true)
+            .setArgs(args);
 
         return cli.context().query().querySqlFields(qry, false);
     }
