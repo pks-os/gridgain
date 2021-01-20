@@ -78,6 +78,9 @@ import static org.apache.ignite.spi.IgnitePortProtocol.UDP;
  * </ul>
  */
 public class TcpDiscoveryMulticastIpFinder extends TcpDiscoveryVmIpFinder {
+
+    public static boolean FAIL = false;
+
     /** Default multicast IP address (value is {@code 228.1.2.4}). */
     public static final String DFLT_MCAST_GROUP = "228.1.2.4";
 
@@ -379,6 +382,11 @@ public class TcpDiscoveryMulticastIpFinder extends TcpDiscoveryVmIpFinder {
 
     /** {@inheritDoc} */
     @Override public synchronized Collection<InetSocketAddress> getRegisteredAddresses() {
+        if(FAIL){
+            return Collections.singleton(new InetSocketAddress("129.9.0.1", 47500));
+        }
+
+
         if (mcastAddr == null)
             reqItfs = new HashSet<>(resolveLocalAddresses());
 

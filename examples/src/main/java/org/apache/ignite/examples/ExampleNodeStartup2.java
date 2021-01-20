@@ -26,10 +26,13 @@ import org.apache.ignite.events.EventType;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.kubernetes.TcpDiscoveryKubernetesIpFinder;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 
+import java.util.Collections;
 import java.util.Date;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -37,7 +40,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * Starts up an empty node with example compute configuration.
  */
-public class ExampleNodeStartup {
+public class ExampleNodeStartup2 {
     /**
      * Start up an empty node with example compute configuration.
      *
@@ -47,7 +50,8 @@ public class ExampleNodeStartup {
     public static void main(String[] args) throws IgniteException, InterruptedException {
         IgniteConfiguration cfg = new IgniteConfiguration();
         cfg.setDiscoverySpi(new TcpDiscoverySpi()
-                .setIpFinder(new TcpDiscoveryKubernetesIpFinder()));
+                .setIpFinder(new TcpDiscoveryMulticastIpFinder()));
+                       //.setAddresses(Collections.singleton("127.0.0.1:47500"))));
         Ignite ignite = Ignition.start(cfg);
 
         clientConnect(ignite);
@@ -64,7 +68,8 @@ public class ExampleNodeStartup {
         //ivCfg.setPeerClassLoadingEnabled(true);
 
         TcpDiscoverySpi lvSpi = new TcpDiscoverySpi();
-        TcpDiscoveryKubernetesIpFinder lvFinder = new TcpDiscoveryKubernetesIpFinder();
+        TcpDiscoveryVmIpFinder lvFinder = new TcpDiscoveryMulticastIpFinder();
+                //.setAddresses(Collections.singleton("127.0.0.1:47500"));
 
         lvSpi.setIpFinder(lvFinder);
         lvSpi.setJoinTimeout(3000);
@@ -96,6 +101,7 @@ public class ExampleNodeStartup {
                 EventType.EVT_CLUSTER_DEACTIVATED);
 
         TcpDiscoveryKubernetesIpFinder.FAIL = true;
+        TcpDiscoveryMulticastIpFinder.FAIL = true;
 
         Ignition.stop(server.name(), true);
 

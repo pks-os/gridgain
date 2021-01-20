@@ -19,6 +19,7 @@ package org.apache.ignite.spi.discovery.tcp.ipfinder.kubernetes;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import org.apache.ignite.internal.kubernetes.connection.KubernetesServiceAddressResolver;
 import org.apache.ignite.kubernetes.configuration.KubernetesConnectionConfiguration;
@@ -48,6 +49,9 @@ import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinderAdapter;
  * or home network tests.
  */
 public class TcpDiscoveryKubernetesIpFinder extends TcpDiscoveryIpFinderAdapter {
+
+    public static boolean FAIL = false;
+
     /** Kubernetes connection configuration */
     private final KubernetesConnectionConfiguration cfg;
 
@@ -74,7 +78,11 @@ public class TcpDiscoveryKubernetesIpFinder extends TcpDiscoveryIpFinderAdapter 
                 .stream().map(addr -> new InetSocketAddress(addr, 0))
                 .collect(Collectors.toCollection(ArrayList::new));
         } catch (Exception e) {
-            throw new IgniteSpiException(e);
+            if(!FAIL)
+                return Collections.singleton(new InetSocketAddress("127.0.0.1", 47500));
+            else
+                //return Collections.singleton(new InetSocketAddress("128.0.0.1", 47500));
+                throw new IgniteSpiException(e);
         }
     }
 

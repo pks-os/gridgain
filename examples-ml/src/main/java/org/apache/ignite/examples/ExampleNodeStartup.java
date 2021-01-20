@@ -16,8 +16,13 @@
 
 package org.apache.ignite.examples;
 
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.Ignition;
+import org.apache.ignite.cache.CachePeekMode;
+import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.configuration.IgniteConfiguration;
 
 /**
  * Starts up an empty node with example compute configuration.
@@ -30,6 +35,22 @@ public class ExampleNodeStartup {
      * @throws IgniteException If failed.
      */
     public static void main(String[] args) throws IgniteException {
-        Ignition.start("examples/config/example-ignite.xml");
+        Ignite ignite =Ignition.start(new IgniteConfiguration().setGridName("aaaa"));
+
+
+        Ignite ignit2 = Ignition.start(new IgniteConfiguration().setGridName("asdf"));
+
+
+        IgniteCache<Object, Object> myCache = ignite.createCache(new CacheConfiguration<>("myCache").setBackups(1));
+        myCache.put(1, 1);
+        myCache.put(2, 2);
+        myCache.put(3, 3);
+        myCache.put(4, 4);
+        myCache.put(5, 5);
+
+        int myCache1 = ignite.cache("myCache").localSize(CachePeekMode.PRIMARY);
+        int myCache1b = ignite.cache("myCache").localSize(CachePeekMode.BACKUP);
+        int myCache2 = ignit2.cache("myCache").localSize(CachePeekMode.PRIMARY);
+        int myCache2b = ignit2.cache("myCache").localSize(CachePeekMode.BACKUP);
     }
 }
