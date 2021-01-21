@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.cache.CacheMetrics;
 import org.apache.ignite.cluster.ClusterMetrics;
 import org.apache.ignite.cluster.ClusterNode;
@@ -455,7 +454,7 @@ public abstract class GridSpiAbstractTest<T extends IgniteSpi> extends GridAbstr
     /**
      * @return  Fully initialized and started SPI implementation.
      */
-    protected final T getSpi() throws IgniteCheckedException {
+    protected final T getSpi() {
         return getTestData().getSpi();
     }
 
