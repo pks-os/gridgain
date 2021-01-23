@@ -16,8 +16,6 @@
 
 package org.apache.ignite.internal.processors.tracing;
 
-import org.apache.ignite.spi.tracing.Scope;
-
 /**
  * List of tags that can be used to decorate spans.
  */
@@ -114,6 +112,9 @@ public class SpanTags {
 
     /** Query ID. */
     public static final String SQL_QUERY_ID = "sql.query.id";
+
+    /** Query map query plan with analyze information. */
+    public static final String SQL_MAP_PLAN_ANALYZE = "sql.map.plan.analyze";
 
     /** */
     private SpanTags() {}

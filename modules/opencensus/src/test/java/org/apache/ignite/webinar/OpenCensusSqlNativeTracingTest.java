@@ -17,12 +17,12 @@
 package org.apache.ignite.webinar;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.opencensus.exporter.trace.zipkin.ZipkinExporterConfiguration;
 import io.opencensus.exporter.trace.zipkin.ZipkinTraceExporter;
 import org.apache.ignite.cache.query.FieldsQueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
+import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteEx;
 import org.apache.ignite.internal.TestRecordingCommunicationSpi;
@@ -32,20 +32,18 @@ import org.apache.ignite.spi.tracing.TracingConfigurationCoordinates;
 import org.apache.ignite.spi.tracing.TracingConfigurationParameters;
 import org.apache.ignite.spi.tracing.TracingSpi;
 import org.apache.ignite.spi.tracing.opencensus.OpenCensusTracingSpi;
+import org.apache.ignite.testframework.GridTestUtils;
 import org.junit.Test;
 
-import static java.lang.Integer.parseInt;
+import static org.apache.ignite.spi.tracing.Scope.CACHE_API_READ;
+import static org.apache.ignite.spi.tracing.Scope.COMMUNICATION;
 import static org.apache.ignite.spi.tracing.Scope.SQL;
 import static org.apache.ignite.spi.tracing.TracingConfigurationParameters.SAMPLING_RATE_ALWAYS;
-import static org.apache.ignite.testframework.GridTestUtils.runAsync;
 
 /**
  * Tests tracing of SQL queries based on {@link OpenCensusTracingSpi}.
  */
 public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
-    /** Page size for queries. */
-    protected static final int PAGE_SIZE = 20;
-
     /** Key count. */
     private static final int KEY_CNT = 10_000;
 
@@ -67,7 +65,16 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
     /** {@inheritDoc} */
     @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
         return super.getConfiguration(igniteInstanceName)
-            .setCommunicationSpi(new TestRecordingCommunicationSpi());
+            .setCommunicationSpi(new TestRecordingCommunicationSpi())
+            .setCacheConfiguration(
+                new CacheConfiguration()
+                    .setName("*")
+                    .setSqlFunctionClasses(GridTestUtils.SqlTestFunctions.class)
+            );
+    }
+
+    @Override protected long getTestTimeout() {
+        return Long.MAX_VALUE;
     }
 
     /** {@inheritDoc} */
@@ -81,21 +88,31 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
             new TracingConfigurationParameters.Builder()
                 .withSamplingRate(SAMPLING_RATE_ALWAYS).build());
 
+        cli.tracingConfiguration().set(
+            new TracingConfigurationCoordinates.Builder(COMMUNICATION).build(),
+            new TracingConfigurationParameters.Builder()
+                .withSamplingRate(SAMPLING_RATE_ALWAYS).build());
+
         init();
     }
 
     /** */
     private void init() {
-        sql("CREATE TABLE TEST (id INT PRIMARY KEY, val0 VARCHAR, val1 INT)");
+        sql("CREATE TABLE TEST (id INT PRIMARY KEY, val0 VARCHAR, val1 INT) WITH\"CACHE_NAME='TEST'\"");
         sql("CREATE INDEX idx0 on TEST(val1)");
 
         for (int i = 0; i < KEY_CNT; ++i)
             sql("INSERT INTO TEST (id, val0, val1) VALUES (?, ?, ?)", i, "val0_" + i, i);
+
+        for (int i = 0; i < 100; ++i)
+            sql("SELECT ID FROM TEST WHERE val1 = " + i).getAll().size();
     }
 
     /** */
     @Test
     public void test() throws Exception {
+        sql("SELECT ID FROM TEST WHERE val0 > ?", "val0_0").getAll();
+
         for (int i = 0; i < 100; ++i) {
             System.out.println(sql("SELECT ID FROM TEST WHERE val1 = " + i).getAll().size());
             sql("UPDATE TEST SET val1 = ? WHERE id = ?", i, i);
@@ -103,18 +120,33 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
             U.sleep(10);
         }
 
-        sql("SELECT ID FROM TEST WHERE val0 > ?", "val0_0").getAll();
-
         System.out.println("+++ done");
 
         U.sleep(500000000);
     }
 
+    /** */
+    @Test
+    public void testLong() throws Exception {
+        while (true) {
+            try {
+                System.out.println("+++ start");
+
+                sql("SELECT ID, delay(1000) FROM TEST WHERE val0 > ?", "val0_0").getAll();
+
+                System.out.println("+++ done");
+
+                U.sleep(500000000);
+            }
+            catch (Throwable e) {
+                // No-op.
+            }
+        }
+    }
 
     /** */
     protected FieldsQueryCursor<List<?>> sql( String sql, Object... args) {
         SqlFieldsQuery qry = new SqlFieldsQuery(sql)
-            .setLazy(true)
             .setArgs(args);
 
         return cli.context().query().querySqlFields(qry, false);
