@@ -113,6 +113,9 @@ public class LocalDeploymentSpi extends IgniteSpiAdapter implements DeploymentSp
         if (clsLdr != null) {
             ConcurrentMap<String, String> rsrcs = ldrRsrcs.get(clsLdr);
 
+            if (rsrcs == null)
+                return null;
+
             return findResource0(rsrcs, rsrcName, clsLdr);
         }
 
@@ -129,6 +132,14 @@ public class LocalDeploymentSpi extends IgniteSpiAdapter implements DeploymentSp
         return null;
     }
 
+    /**
+     * Finds appropriate resource.
+     *
+     * @param rsrcs Resources.
+     * @param rsrcName Class name or class alias to find class loader for.
+     * @param clsLdr desired class loader.
+     * @return Deployed class loader, or {@code null} if not deployed.
+     */
     @Nullable private DeploymentResourceAdapter findResource0(Map<String, String> rsrcs, String rsrcName, ClassLoader clsLdr) {
         String clsName = rsrcs.get(rsrcName);
 
