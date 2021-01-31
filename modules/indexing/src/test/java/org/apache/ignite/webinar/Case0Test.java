@@ -27,6 +27,7 @@ import org.apache.ignite.internal.IgniteEx;
 import org.apache.ignite.internal.processors.cache.index.AbstractIndexingCommonTest;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.G;
+import org.apache.ignite.internal.util.typedef.internal.U;
 import org.junit.Test;
 
 /**
@@ -56,9 +57,13 @@ public class Case0Test extends AbstractIndexingCommonTest {
     @Test
     public void test() throws Exception {
         awaitPartitionMapExchange(true, true, null);
+
         sql("CREATE TABLE COUNTRY (id INT PRIMARY KEY, name VARCHAR)");
-        sql("CREATE TABLE CITY (id INT, countryId INT, name VARCHAR, population INT, PRIMARY KEY(id, countryId))" +
-            "WITH \"AFFINITY_KEY=countryId\"");
+        sql("CREATE TABLE CITY (id INT PRIMARY KEY , countryId INT, name VARCHAR, population INT)");
+
+//        sql("CREATE TABLE COUNTRY (id INT PRIMARY KEY, name VARCHAR)");
+//        sql("CREATE TABLE CITY (id INT, countryId INT, name VARCHAR, population INT, PRIMARY KEY(id, countryId))" +
+//            "WITH \"AFFINITY_KEY=countryId\"");
 
 //        sql("CREATE TABLE COUNTRY (id INT PRIMARY KEY, name VARCHAR)" +
 //            "WITH \"TEMPLATE=replicated\"");
@@ -79,6 +84,10 @@ public class Case0Test extends AbstractIndexingCommonTest {
                 "COUNTRY " +
                 "WHERE CITY.countryId=COUNTRY.id AND COUNTRY.name=?", "country_10")
             .getAll().forEach(r -> System.out.println("+++ " + r));
+
+
+        while (true)
+            U.sleep(1000);
     }
 
     /**

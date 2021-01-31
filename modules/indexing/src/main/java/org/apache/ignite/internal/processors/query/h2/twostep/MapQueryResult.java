@@ -404,7 +404,7 @@ class MapQueryResult {
         void close() {
             try (MTC.TraceSurroundings ignored =
                      MTC.support(tracing.create(SQL_QRY_MAP_END, MTC.span())
-                         .addTag(SQL_MAP_PLAN_ANALYZE, this::plan))
+                         .addLog(this::plan))
             ) {
                 fetchSizeInterceptor.checkOnClose();
 

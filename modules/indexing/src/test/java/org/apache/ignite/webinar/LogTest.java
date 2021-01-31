@@ -16,7 +16,11 @@
 
 package org.apache.ignite.webinar;
 
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.ignite.cache.query.FieldsQueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
@@ -69,25 +73,30 @@ public class LogTest extends AbstractIndexingCommonTest {
 
     /** */
     @Test
-    public void testExplainComplex() throws Exception {
-        awaitPartitionMapExchange(true, true, null);
+    public void testHugeResult() throws Exception {
+        sql("CREATE TABLE TEST (id0 INT, id1 BIGINT, name VARCHAR, price INT," +
+            " PRIMARY KEY (id0, id1)) ");
 
-        sql("CREATE TABLE CITY (id INT PRIMARY KEY, countryId INT, name VARCHAR, population INT)");
-        sql("CREATE TABLE COUNTRY (id INT PRIMARY KEY, name VARCHAR)");
-        sql("CREATE INDEX CityCountryIdx on CITY(countryId)");
+        for (int i = 0; i < 10000; ++i )
+            sql("INSERT INTO TEST VALUES (?, ?, ?, ?)", i, i, "val_" + i , i);
 
-//        for (int i = 0; i < KEY_CNT; ++i)
-//            sql("INSERT INTO TEST0 (id, grpId, val0, val1) VALUES (?, ?, ?, ?)", i, i / 10, "val0_" + i, i);
+        Iterator it = sql("SELECT T0.name FROM TEST T0, TEST T1 WHERE T0.price > 10").iterator();
 
-        System.out.println("+++ " + sql("EXPLAIN " +
-            "SELECT COUNTRY.name, cities.pop FROM " +
-                "(SELECT countryId, SUM(population) as pop " +
-                "   FROM CITY " +
-                "   GROUP BY countryId " +
-                "   HAVING (AVG(population)) < ?" +
-                ") AS cities " +
-                "JOIN COUNTRY ON COUNTRY.id = cities.countryId",
-            1, 2).getAll());
+        while (it.hasNext())
+            it.next();
+    }
+
+    /** */
+    @Test
+    public void testInlineSize() throws Exception {
+        sql("CREATE TABLE TEST (id0 INT, id1 BIGINT, name VARCHAR(80), price INT, ts TIMESTAMP, type SMALLINT, " +
+            " PRIMARY KEY (id0, id1)) ");
+
+        sql("CREATE INDEX IDX0 ON TEST(type, price, ts, name) INLINE_SIZE 10");
+//        sql("CREATE INDEX IDX0 ON TEST(type, price, ts, name)");
+
+        for (int i = 0; i < 1000; ++i)
+            sql("INSERT INTO TEST VALUES(?, ? ,? ,? ,? ,?)", i, i, "asdasdasdasasdasdfffffffffffffsdfsdfsdfsdfsdasdasdd", 0, new Date(), 0);
     }
 
     /**

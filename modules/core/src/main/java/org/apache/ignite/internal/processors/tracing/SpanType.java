@@ -346,7 +346,7 @@ public enum SpanType {
     SQL_BATCH_PROCESS(Scope.SQL, "sql.batch.process", 103),
 
     /** Processing query cancellation request. */
-    SQL_QRY_MAP_END(Scope.SQL, "sql.query.map.end", 104);
+    SQL_QRY_MAP_END(Scope.SQL, "sql.query.map.result.close", 104);
 
     /** Scope */
     private Scope scope;

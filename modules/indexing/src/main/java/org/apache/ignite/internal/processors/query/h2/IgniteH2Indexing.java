@@ -1379,9 +1379,7 @@ public class IgniteH2Indexing implements GridQueryIndexing {
         // Register query.
         Long qryId = registerRunningQuery(qryDesc, qryParams, cancel);
 
-        try (TraceSurroundings ignored =
-                 MTC.support(ctx.tracing().create(SQL_CURSOR_OPEN, MTC.span())
-                     .addTag(SQL_QUERY_ID, () -> Long.toString(qryId)))) {
+        try (TraceSurroundings ignored = MTC.support(ctx.tracing().create(SQL_CURSOR_OPEN, MTC.span()))) {
             GridNearTxLocal tx = null;
             MvccQueryTracker tracker = null;
             GridCacheContext mvccCctx = null;

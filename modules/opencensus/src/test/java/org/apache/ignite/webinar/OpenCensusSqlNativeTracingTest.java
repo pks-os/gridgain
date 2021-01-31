@@ -135,8 +135,23 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
                 sql("SELECT ID, delay(1000) FROM TEST WHERE val0 > ?", "val0_0").getAll();
 
                 System.out.println("+++ done");
+            }
+            catch (Throwable e) {
+                // No-op.
+            }
+        }
+    }
 
-                U.sleep(500000000);
+    /** */
+    @Test
+    public void testHugeResult() throws Exception {
+        while (true) {
+            try {
+                System.out.println("+++ start");
+
+                sql("SELECT ID FROM TEST T0, TEST T1 WHERE T0.val0 > ?", "val0_0").getAll();
+
+                System.out.println("+++ done");
             }
             catch (Throwable e) {
                 // No-op.
@@ -147,7 +162,8 @@ public class OpenCensusSqlNativeTracingTest extends AbstractTracingTest {
     /** */
     protected FieldsQueryCursor<List<?>> sql( String sql, Object... args) {
         SqlFieldsQuery qry = new SqlFieldsQuery(sql)
-            .setArgs(args);
+            .setArgs(args)
+            .setLazy(true);
 
         return cli.context().query().querySqlFields(qry, false);
     }
