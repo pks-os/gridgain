@@ -146,6 +146,7 @@ namespace ignite_test
         std::string current;
         while (std::getline(file, current))
         {
+            std::cout << current << std::endl;
             if (current.find(line) != std::string::npos)
                 ++cnt;
         }
