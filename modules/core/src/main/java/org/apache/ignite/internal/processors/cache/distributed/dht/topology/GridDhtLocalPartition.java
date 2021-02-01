@@ -57,6 +57,7 @@ import org.apache.ignite.internal.processors.cache.transactions.TxCounters;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
 import org.apache.ignite.internal.processors.query.GridQueryRowCacheCleaner;
 import org.apache.ignite.internal.util.GridLongList;
+import org.apache.ignite.internal.util.GridStringBuilder;
 import org.apache.ignite.internal.util.collection.IntMap;
 import org.apache.ignite.internal.util.collection.IntRWHashMap;
 import org.apache.ignite.internal.util.future.GridFinishedFuture;
@@ -1303,7 +1304,7 @@ public class GridDhtLocalPartition extends GridCacheConcurrentMapImpl implements
      *
      * @param buf Buffer.
      */
-    public void dumpDebugInfo(SB buf) {
+    public void dumpDebugInfo(GridStringBuilder buf) {
         GridDhtPartitionTopology top = grp.topology();
         AffinityTopologyVersion topVer = top.readyTopologyVersion();
 
@@ -1315,11 +1316,11 @@ public class GridDhtLocalPartition extends GridCacheConcurrentMapImpl implements
 
         final int limit = 3;
 
-        buf.a("[topVer=").a(topVer);
-        buf.a(", lastChangeTopVer=").a(top.lastTopologyChangeVersion());
-        buf.a(", waitRebalance=").a(ctx.kernalContext().cache().context().affinity().waitRebalance(grp.groupId(), id));
-        buf.a(", nodes=").a(F.nodeIds(top.nodes(id, topVer)).stream().limit(limit).collect(Collectors.toList()));
-        buf.a(", locPart=").a(toString());
+        buf.a("[topVer=").a(topVer)
+            .a(", lastChangeTopVer=").a(top.lastTopologyChangeVersion())
+            .a(", waitRebalance=").a(ctx.kernalContext().cache().context().affinity().waitRebalance(grp.groupId(), id))
+            .a(", nodes=").a(F.nodeIds(top.nodes(id, topVer)).stream().limit(limit).collect(Collectors.toList()))
+            .a(", locPart=").a(toString());
 
         NavigableSet<AffinityTopologyVersion> versions = grp.affinity().cachedVersions();
 

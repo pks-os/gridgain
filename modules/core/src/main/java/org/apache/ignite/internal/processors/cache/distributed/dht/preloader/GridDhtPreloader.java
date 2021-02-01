@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteSystemProperties;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.failure.FailureContext;
@@ -41,6 +42,8 @@ import org.apache.ignite.internal.processors.cache.distributed.dht.atomic.GridNe
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPartitionDemander.RebalanceFuture;
 import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtLocalPartition;
 import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionTopology;
+import org.apache.ignite.internal.processors.cache.persistence.snapshot.PartitionRecoveryDiscoveryMessage;
+import org.apache.ignite.internal.util.GridStringBuilder;
 import org.apache.ignite.internal.util.future.GridCompoundFuture;
 import org.apache.ignite.internal.util.future.GridFinishedFuture;
 import org.apache.ignite.internal.util.future.GridFutureAdapter;
@@ -311,18 +314,30 @@ public class GridDhtPreloader extends GridCachePreloaderAdapter {
 
                 GridDhtLocalPartition locPart = grp.topology().localPartition(first.partitions().all().iterator().next());
 
-                SB buf = new SB(1024);
-
-                buf.a("Unexpected rebalance on rebalanced cluster: assignments=");
-                buf.a(assignments);
-                buf.a(", locPart=");
+                GridStringBuilder buf = new SB(1024)
+                    .a("Unexpected rebalance on rebalanced cluster, partitions will be recovered [grp=")
+                    .a(grp.cacheOrGroupName())
+                    .a("assignments=")
+                    .a(assignments)
+                    .a(", locPart=");
 
                 if (locPart != null)
                     locPart.dumpDebugInfo(buf);
                 else
                     buf.a("NA");
 
-                throw new AssertionError(buf.toString());
+                buf.a(']');
+
+                log.warning(buf.toString());
+
+                assignments.cancelled(true);
+
+                try {
+                    ctx.discovery().sendCustomEvent(new PartitionRecoveryDiscoveryMessage());
+                }
+                catch (IgniteCheckedException e) {
+                    throw new IgniteException("Failed to send partition recovery message (partitions are not consistent).", e);
+                }
             }
 
             ctx.database().lastCheckpointInapplicableForWalRebalance(grp.groupId());
